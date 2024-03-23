@@ -14,7 +14,8 @@ board schema :
 =========================================*/
 class ConditionalPieceMoves {
 
-    fun isKingInChecked(currXKing: Int, currYKing: Int, piece: String, board: Array<Array<String>>): Boolean {
+    fun isKingInChecked(currXKing: Int, currYKing: Int,  board: Array<Array<String>>): Boolean {
+        // vektor untuk langkah raja
         val directions = listOf(
             Pair(-1, 0),  // Up
             Pair(1, 0), // bawah
@@ -25,8 +26,47 @@ class ConditionalPieceMoves {
             Pair(1, 1),   // Bawah-kanan
             Pair(1, -1)   // Bawah-kiri
         )
+
+
+        /**=====================================================================
+          *Note:
+        Dari perspektif Kuda (knight), kondisi skak lebih muda. Karena Jika Raja berdiri
+        dijalurnya kuda dari lawan/berlawanan warna,
+        meskipun ada bidak(piece satu warna) yg menghalangi/melindungi Raja,
+        maka Raja itu tetap skak.
+
+        ├────┼────┼────┼────┼────┼────┼────┼────┤
+        │    │    │    │ bk │    │    │    │    │
+        ├────┼────┼────┼────┼────┼────┼────┼────┤
+        │ wp │ wp │ wp │ wp │ wp │ wp │ wp │ wp │
+        ├────┼────┼────┼────┼────┼────┼────┼────┤
+        │ wr │ wk │ wb │ wq │ wg │ wb │ wk │ wr │
+        └────┴────┴────┴────┴────┴────┴────┴────┘
+        =========================================================================*/
+        val knightDirection = listOf(  // vektor untuk kuda
+            // atas kanan
+            Pair(- 2,  1),
+            // atas kiri
+            Pair(- 2,  - 1),
+            // bawah kanan
+            Pair( 2, 1),
+            // bawah kiri
+            Pair( 2,  - 1),
+            // kiri atas
+            Pair(- 1, - 2),
+            // kiri bawah
+            Pair(+ 1, - 2),
+            // kanan atas
+            Pair(- 1,  2),
+            // kanan bawah
+            Pair( 1,  2)
+        )
+        /*=============================================================
+        Pemeriksaan 1 cell
+         ==============================================================*/
+
         // untuk putih periksa cell atas-kiri dan atas-kanan kalau ada piece berwarna berlawanan maka skak
-        if (piece[0] == 'w') {
+        if (board[currXKing][currYKing] [0] == 'w') {
             //check board[currXKing-1][currYKing-1]!="" untuk prevent index of out range excep.
             if (board[currXKing - 1][currYKing - 1] != "" && board[currXKing - 1][currYKing - 1][0] == 'b') {
                 return true
@@ -34,59 +74,95 @@ class ConditionalPieceMoves {
             if (board[currXKing - 1][currYKing - 1] != "" && board[currXKing - 1][currYKing + 1][0] == 'b') {
                 return true
             }
+
+            // bagian kuda
+                for(i in 0 until 8) {
+                    // 0 <= posisi kuda (di x atau y) + jalur kuda harus < 8
+                    // lebih/kurang dari itu maka keluar papan
+                    if (currXKing +knightDirection.get(i).first.toInt() < 8
+                        && currYKing +knightDirection.get(i).second.toInt()<8
+                        && currXKing +knightDirection.get(i).first.toInt() >-1
+                        && currYKing +knightDirection.get(i).second.toInt() >-1
+                    ) {
+                        if (
+                            board[currXKing + knightDirection.get(i).first.toInt()][currYKing + knightDirection.get(i).second.toInt()] == "bk"){
+                            return true
+                        }
+                    }
+                }
         }
         // untuk hitam check cell bawah-kanan dan bawah-kiri kalau ada piece berwarna berlawanan maka skak
-        if (piece[0] == 'b') {
+        if (board[currXKing][currYKing][0] == 'b') {
             if (board[currXKing + 1][currYKing - 1][0] == 'w') {
                 return true
             }
             if (board[currXKing + 1][currYKing + 1][0] == 'w') {
                 return true
             }
+
+            // bagian kuda
+            for(i in 0 until 8) {
+                // 0 <= posisi kuda (di x atau y) + jalur kuda harus < 8
+                // lebih/kurang dari itu maka keluar papan
+                if (currXKing +knightDirection.get(i).first.toInt() < 8
+                    && currYKing +knightDirection.get(i).second.toInt()<8
+                    && currXKing +knightDirection.get(i).first.toInt() >-1
+                    && currYKing +knightDirection.get(i).second.toInt() >-1
+                ) {
+                    if (
+                        board[currXKing + knightDirection.get(i).first.toInt()][currYKing + knightDirection.get(i).second.toInt()] == "wk"){
+                        return true
+                    }
+                }
+            }
         }
+
+        /*===============================================================================
+        Periksa diseluruh jalur king yg memungkinkan
+        ================================================================================*/
 
         // Cari semua moves sepanjang jalur King
         var indexOfCurrentPair = 0
 
-            /*=================================================================================
-              kalau disepanjang jalur King ada piece berlawanan warna yang bukan Pawn atau
-              King maka kondisi sedang skak
+        /*=================================================================================
+          kalau disepanjang jalur (open) King ada piece berlawanan warna yang bukan Pawn atau
+          King maka kondisi sedang skak
 
-              sedangkan untuk kasus Rook dan Bishop, agak sulit. Kalau rook lawan ada di jalur diagonal
-              maka tidak skak, begitupun jika Bishop ada dijalur horizontal/vertical maka tidak skak
+          sedangkan untuk kasus Rook dan Bishop, agak sulit. Kalau rook lawan ada di jalur diagonal
+          maka tidak skak, begitupun jika Bishop ada dijalur horizontal/vertical maka tidak skak
 
-              Contoh dibawah ini kondisi tidak skak meskipun piece lawan (Rook atau Bishop) ada dijalur:
+          Contoh dibawah ini kondisi tidak skak meskipun piece lawan (Rook atau Bishop) ada dijalur:
+           ├────┼────┼────┼────┼────┼────┼────┼────┤
+           │    │    │ br │    │    │    │    │    │
+           ├────┼────┼────┼────┼────┼────┼────┼────┤
+           │ wp │ wp │ wp │    │ wp │ wp │ wp │ wp │
+           ├────┼────┼────┼────┼────┼────┼────┼────┤
+           │ wr │ wk │ wb │ wq │ wg │ wb │ wk │ wr │
+           └────┴────┴────┴────┴────┴────┴────┴────┘
+             ├────┼────┼────┼────┼────┼────┼────┼────┤
+             │    │    │    │    │ bb │    │    │    │
+             ├────┼────┼────┼────┼────┼────┼────┼────┤
+             │ wp │ wp │ wp │ wp │    │ wp │ wp │ wp │
+             ├────┼────┼────┼────┼────┼────┼────┼────┤
+             │ wr │ wk │ wb │ wq │ wg │ wb │ wk │ wr │
+             └────┴────┴────┴────┴────┴────┴────┴────┘
+     Tapi dibawah ini skak :
                ├────┼────┼────┼────┼────┼────┼────┼────┤
-               │    │    │ br │    │    │    │    │    │
+               │    │    │    │ br │    │    │    │    │
                ├────┼────┼────┼────┼────┼────┼────┼────┤
                │ wp │ wp │ wp │    │ wp │ wp │ wp │ wp │
                ├────┼────┼────┼────┼────┼────┼────┼────┤
                │ wr │ wk │ wb │ wq │ wg │ wb │ wk │ wr │
                └────┴────┴────┴────┴────┴────┴────┴────┘
                  ├────┼────┼────┼────┼────┼────┼────┼────┤
-                 │    │    │    │    │ bb │    │    │    │
+                 │    │    │ bb │    │    │    │    │    │
                  ├────┼────┼────┼────┼────┼────┼────┼────┤
-                 │ wp │ wp │ wp │ wp │    │ wp │ wp │ wp │
+                 │ wp │ wp │ wp │    │    │ wp │ wp │ wp │
                  ├────┼────┼────┼────┼────┼────┼────┼────┤
                  │ wr │ wk │ wb │ wq │ wg │ wb │ wk │ wr │
                  └────┴────┴────┴────┴────┴────┴────┴────┘
-         Tapi dibawah ini skak :
-                   ├────┼────┼────┼────┼────┼────┼────┼────┤
-                   │    │    │    │ br │    │    │    │    │
-                   ├────┼────┼────┼────┼────┼────┼────┼────┤
-                   │ wp │ wp │ wp │    │ wp │ wp │ wp │ wp │
-                   ├────┼────┼────┼────┼────┼────┼────┼────┤
-                   │ wr │ wk │ wb │ wq │ wg │ wb │ wk │ wr │
-                   └────┴────┴────┴────┴────┴────┴────┴────┘
-                     ├────┼────┼────┼────┼────┼────┼────┼────┤
-                     │    │    │ bb │    │    │    │    │    │
-                     ├────┼────┼────┼────┼────┼────┼────┼────┤
-                     │ wp │ wp │ wp │    │    │ wp │ wp │ wp │
-                     ├────┼────┼────┼────┼────┼────┼────┼────┤
-                     │ wr │ wk │ wb │ wq │ wg │ wb │ wk │ wr │
-                     └────┴────┴────┴────┴────┴────┴────┴────┘
-               Jadi harus detect jalur yg sedang ditelusuri ini diagonal atau tdk.
-             ======================================================== */
+           Jadi harus detect jalur yg sedang ditelusuri ini diagonal atau tdk.
+         ======================================================== */
         for ((di, dj) in directions) {
             if (indexOfCurrentPair > 3) {// jalur diagonal
                 var row = currXKing + di
@@ -100,7 +176,7 @@ class ConditionalPieceMoves {
                     // sewaktu dapat penghalang ( piece lain )
                     if (board[row][col] != "") {
                         //println("penghalang di $row $col")
-                        if (piece[0] != board[row][col][0]
+                        if (board[currXKing][currYKing][0] != board[row][col][0] // warna berlawanan
                             && (!board[row][col].contains("g") // King tidak bisa skak King
                                     && !board[row][col].contains("p")
                                     && !board[row][col].contains("r")
@@ -114,7 +190,6 @@ class ConditionalPieceMoves {
                         col += dj
                     }
                 }
-                println("bla")
             } else { // jalur vertical/horizontal
                 var row = currXKing + di
                 var col = currYKing + dj
@@ -126,7 +201,7 @@ class ConditionalPieceMoves {
                     // sewaktu dapat penghalang ( piece lain )
                     if (board[row][col] != "") {
                         //println("penghalang di $row $col")
-                        if (piece[0] != board[row][col][0]
+                        if (board[currXKing][currYKing][0] != board[row][col][0] // warna berlawanan
                             && (!board[row][col].contains("g") // King tidak bisa skak King
                                     && !board[row][col].contains("p")
                                     && !board[row][col].contains("b")
@@ -140,7 +215,6 @@ class ConditionalPieceMoves {
                         col += dj
                     }
                 }
-                println("bla")
             }
             indexOfCurrentPair++
         }
