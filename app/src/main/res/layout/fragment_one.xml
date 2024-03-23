@@ -7,6 +7,16 @@
     android:orientation="vertical"
     tools:context="com.fevly.kasuarichess.MainActivity">
 
+<TextView
+    android:background="@color/black"
+    android:textColor="@color/white"
+    android:id="@+id/opponent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textSize = "30sp"
+    android:textStyle="bold"
+    android:textAlignment="center"
+    />
 
     <!-- activity_main.xml -->
     <GridLayout
@@ -19,12 +29,22 @@
         android:rowCount="9"
 
         ></GridLayout>
-
+    <TextView
+        android:textColor="@color/white"
+        android:background="@color/black"
+        android:id="@+id/player"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize = "30sp"
+        android:textStyle="bold"
+        android:textAlignment="center"
+       />
     <TextView
         android:id="@+id/textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/teal_700"
-        android:text="Sample layout text jgn hapus...untuk layouting"></TextView>
+        android:text="Sample layout text jgn hapus...untuk layouting"
+       />
 
 </LinearLayout>
