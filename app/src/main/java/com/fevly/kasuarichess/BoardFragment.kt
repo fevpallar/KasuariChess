@@ -40,7 +40,7 @@ class BoardFragment : Fragment() {
     var currentRow = -1
     var currentCol = -1
 
-    var colorToMoveFlag=0; // 0 -> putih (white), 1 -> hitam (bleeki..)
+    var colorHasMoveFlag :Char = 'x'; // w -> putih (white), b -> hitam (bleeki..)
 
     lateinit var board: Array<Array<String>>
 
@@ -157,6 +157,7 @@ class BoardFragment : Fragment() {
 
         if (board[row][col] == "wp") {
             imageView.setImageResource(R.drawable.whitepawn)
+
         }
         if (board[row][col] == "bp") {
             imageView.setImageResource(R.drawable.blackpawn)
@@ -192,6 +193,8 @@ class BoardFragment : Fragment() {
             imageView.setImageResource(R.drawable.blackking)
         }
     }
+
+
 
     // issue 22/03/2024 layout blinking saat re-draw
     // butuh remodel
@@ -337,7 +340,9 @@ class BoardFragment : Fragment() {
                     Log.d("CHESS", trackedClickedPiece.toString())
                     Log.d("CHESS", "current = ( $i , $j ) = " + board[i][j])
 
-                    if (trackedClickedPiece.size > 1) {
+                    if (trackedClickedPiece.size > 1) {// list sdh 2 element, element terakhir itu bidak yg mau gerak/pindah/move
+
+                        // blok ini ketrigger saat piece sudah move ke tujuan cell, dari piece yg paling awal
 
                         var previousX =
                             trackedClickedPiece.toTypedArray()[trackedClickedPiece.size - 2].first.toInt();
@@ -348,9 +353,17 @@ class BoardFragment : Fragment() {
 
 
                         if (currentRow != previousX && currentCol != previousY) {
+
+                            // block if ini tdk ketrigger saat pertama kali click bidak
+
                             // 22/03/2024 move dari cell kosong ke cell bidak throw exception
                             // , sehingga perlu board[previousX][previousY].length>0
-                            if (board[previousX][previousY].length > 0 && board[previousX][previousY][1] == 'k') {
+                            if (board[previousX][previousY].length > 0
+                                && board[previousX][previousY][1] == 'k'
+                                && board[previousX][previousY][0]!=colorHasMoveFlag
+                            ) {
+
+                                // ketrigger setelah piece coba dipindakan
 
                                 latestBoard = pm.moveKnight(
                                     previousX,
@@ -361,16 +374,30 @@ class BoardFragment : Fragment() {
                                     board,
                                     false
                                 )
+
 //                                 boardInit.
                                 BoardInit().printTwoDStringArrayInBox(latestBoard)
 
                                 // update layout square image view disini
                                 drawUpdatedPieces(latestBoard, imageViewArray)
 
-                                if (snapshotMoves.size==0)
-                                snapshotMoves.add(latestBoard)
+                                /*====================================
+                                note 31032024
+                                currentRow & currentCol dititik ini sudah menjadi
+                                destination row dan destination col,
+                                karena bidak sudah berhasil pindah
+                                ======================================= */
+                               if (board[currentRow][currentCol][0]=='w') colorHasMoveFlag= 'w'
+                                if (board[currentRow][currentCol][0]=='b') colorHasMoveFlag= 'b'
 
-                               else {
+                                println("color $colorHasMoveFlag")
+
+                                if (snapshotMoves.size == 0)
+                                    snapshotMoves.add(latestBoard)
+                                else {  // tdk pengaruh ke UI
+
+                                    // ketrigger saat piece kedua sudh selesai move (sampai ke cell tujuan)
+
                                     // jika kontent latestboard identik dengan element terakhir dari
                                     // array snapshot maka interpretasinya adalah tdk ada pergerakan
                                     if (!latestBoard.contentDeepEquals(
@@ -378,8 +405,7 @@ class BoardFragment : Fragment() {
                                         )
                                     )
                                         snapshotMoves.add(latestBoard)
-                               }
-
+                                }
 
 
                             }
@@ -388,8 +414,8 @@ class BoardFragment : Fragment() {
 
                     }
 
-                    if(snapshotMoves.size>0) {
-                        Log.d("chess","snapshot terakhir: \n")
+                    if (snapshotMoves.size > 0) {
+                        Log.d("chess", "snapshot terakhir: \n")
                         BoardInit().printTwoDStringArrayInBox(snapshotMoves[snapshotMoves.size - 1])
 
                     }
