@@ -534,11 +534,11 @@ class PieceMoves(_board: Array<Array<String>>) {
         currY: Int,
         destX: Int,
         destY: Int,
-        piece: String,
+        currentPiece: String,
         board: Array<Array<String>>,
         ischeck: Boolean
     ): Array<Array<String>> {
-        var possMoves: List<Pair<Int, Int>> = getPossibleBishopMoves(currX, currY, piece)
+        var possMoves: List<Pair<Int, Int>> = getPossibleBishopMoves(currX, currY, currentPiece)
         possMoves.forEachIndexed { index, pair ->
 //            val i = index / 8
 //            val j = index % 8
@@ -550,26 +550,36 @@ class PieceMoves(_board: Array<Array<String>>) {
                   - ada piece warna berlawanan namun bukan king
                   - tidak dalam keadaan check/skak */
             if (firstElement == destX && secondElement == destY) {
-                // for white piece
-                if (ischeck == false && piece[0] == 'w'
-                    || board[destX][destY].contains("b")
-                    && !board[destX][destY].contains("g")
-                ) {
-                    board[destX][destY] = piece
+
+                if ( board[firstElement][secondElement] == "") { // destination cell kosong
+                    // untuk hitam/putih
+                    board[destX][destY] = currentPiece
                     board[currX][currY] = ""
                 }
-                // for black piece
-                if (ischeck == false && piece[0] == 'b'
-                    || board[destX][destY].contains("w")
-                    && !board[destX][destY].contains("g")
-                ) {
-                    board[destX][destY] = piece
-                    board[currX][currY] = ""
+
+                // nangkap bidak (non king, dan beda warna)
+                else { // destination cell tdk kosong
+                    // for white piece
+                    if (ischeck == false && currentPiece[0] == 'w'
+                        || board[destX][destY].contains("b")
+                        && !board[destX][destY].contains("g")
+                    ) {
+                        board[destX][destY] = currentPiece
+                        board[currX][currY] = ""
+                    }
+                    // for black piece
+                    if (ischeck == false && currentPiece[0] == 'b'
+                        || board[destX][destY].contains("w")
+                        && !board[destX][destY].contains("g")
+                    ) {
+                        board[destX][destY] = currentPiece
+                        board[currX][currY] = ""
+                    }
                 }
             }
 //        println("Pair at index ($i, $j): ($firstElement, $secondElement)")
         }
-        this.previousPiece = piece // update previous piece to current piece (setelah move)
+        this.previousPiece = currentPiece // update previous piece to current piece (setelah move)
         return board
     }
 
@@ -610,7 +620,7 @@ class PieceMoves(_board: Array<Array<String>>) {
         currY: Int,
         destX: Int,
         destY: Int,
-        piece: String,
+        currentPiece: String,
         board: Array<Array<String>>,
         ischeck: Boolean
     ): Array<Array<String>> {
@@ -618,6 +628,9 @@ class PieceMoves(_board: Array<Array<String>>) {
         possMoves.forEachIndexed { index, pair ->
 //            val i = index / 8
 //            val j = index % 8
+
+
+            // masing2 dari pair dari possible moves kuda
             // Access the elements of the pair
             val firstElement: Int = pair.first
             val secondElement: Int = pair.second
@@ -627,28 +640,37 @@ class PieceMoves(_board: Array<Array<String>>) {
                   - dan bukan king dan
                   - tidak dalam keadaan check/skak */
             if (firstElement == destX && secondElement == destY
-                && board[firstElement][secondElement] == ""
+
             ) {
-                // for white piece
-                if (ischeck == false && piece[0] == 'w'
-                    || board[destX][destY].contains("b")
-                    && !board[destX][destY].contains("g")
-                ) {
-                    board[destX][destY] = piece
-                    board[currX][currY] = ""
-                }
-                // for black piece
-                if (ischeck == false && piece[0] == 'b'
-                    || board[destX][destY].contains("w")
-                    && !board[destX][destY].contains("g")
-                ) {
-                    board[destX][destY] = piece
-                    board[currX][currY] = ""
+
+             if ( board[firstElement][secondElement] == "") { // destination cell kosong
+                  // untuk hitam/putih
+                     board[destX][destY] = currentPiece
+                     board[currX][currY] = ""
+             }
+                 // nangkap bidak (non king, dan beda warna)
+               else { // destination cell tdk kosong
+                    // for white piece
+                    if (ischeck == false && currentPiece[0] == 'w'
+                        || board[destX][destY].contains("b")
+                        && !board[destX][destY].contains("g")
+                    ) {
+                        board[destX][destY] = currentPiece
+                        board[currX][currY] = ""
+                    }
+                    // for black piece
+                    if (ischeck == false && currentPiece[0] == 'b'
+                        || board[destX][destY].contains("w")
+                        && !board[destX][destY].contains("g")
+                    ) {
+                        board[destX][destY] = currentPiece
+                        board[currX][currY] = ""
+                    }
                 }
             }
 //        println("Pair at index ($i, $j): ($firstElement, $secondElement)")
         }
-        this.previousPiece = piece // update previous piece to current piece (setelah move)
+        this.previousPiece = currentPiece // update previous piece to current piece (setelah move)
         return board
     }
 }
