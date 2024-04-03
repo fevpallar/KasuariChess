@@ -10,13 +10,16 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-import com.fevly.stockfish.StockfishEngine;
+
+import com.fevly.engine.StockfishEngine;
+import com.fevly.engine.StringOutListener;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class StockfishFeeder implements StockfishEngine.StringOutListener {
+public class StockfishFeeder implements StringOutListener {
     public static String allMoves;
+
     StockfishEngine so = new StockfishEngine();
 
     /*=========================================

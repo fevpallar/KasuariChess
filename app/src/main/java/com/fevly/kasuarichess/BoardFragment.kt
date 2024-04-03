@@ -30,6 +30,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager.widget.ViewPager
 import com.fevly.kasuarichess.procs.BoardInit
+import com.fevly.kasuarichess.util.Timing
 import com.google.android.material.tabs.TabLayout
 
 
@@ -40,7 +41,7 @@ class BoardFragment : Fragment() {
     var currentRow = -1
     var currentCol = -1
 
-    var colorHasMoveFlag :Char = 'x'; // w -> putih (white), b -> hitam (bleeki..)
+    var colorHasMoveFlag: Char = 'x'; // w -> putih (white), b -> hitam (bleeki..)
 
     lateinit var board: Array<Array<String>>
 
@@ -54,11 +55,21 @@ class BoardFragment : Fragment() {
     lateinit var latestBoard: Array<Array<String>>
     lateinit var snapshotMoves: MutableList<Array<Array<String>>>
 
+    lateinit var playerTime: TextView
+    lateinit var opponentTime: TextView
+
     var labelHuruf = arrayOf("a", "b", "c", "d", "e", "f", "g", "h")
     var labelAngka = arrayOf("1", "2", "3", "4", "5", "6", "7", "8")
 
+
+    lateinit var timing: Timing
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
+
+
     }
 
     override fun onCreateView(
@@ -71,6 +82,13 @@ class BoardFragment : Fragment() {
         chessboardLayout = view.findViewById<GridLayout>(R.id.chessboard)
         chessboardLayout.setBackgroundColor(Color.RED)
 
+        playerTime = view.findViewById<TextView>(R.id.player)
+        opponentTime = view.findViewById<TextView>(R.id.opponent)
+
+
+        timing = Timing() // timer
+        timing.processGameTime(playerTime)
+  timing.processGameTime(opponentTime)
 
         //main board
         board = Array(8) { Array(8) { "" } }
@@ -82,6 +100,8 @@ class BoardFragment : Fragment() {
             mutableSetOf<Pair<Int, Int>>() // untuk rekam piece2 yg sedang diklik (*catatan case ada dibawah)
         latestBoard =
             Array(8) { Array(8) { "" } } // kontent array yg akan dipassing di setiap proses, inilah update-an yg jadi snapshot
+
+
 
 
         // inisialisasi board dan pergerakan bidak2
@@ -193,7 +213,6 @@ class BoardFragment : Fragment() {
             imageView.setImageResource(R.drawable.blackking)
         }
     }
-
 
 
     // issue 22/03/2024 layout blinking saat re-draw
@@ -360,7 +379,7 @@ class BoardFragment : Fragment() {
                             // , sehingga perlu board[previousX][previousY].length>0
                             if (board[previousX][previousY].length > 0
                                 && board[previousX][previousY][1] == 'k'
-                                && board[previousX][previousY][0]!=colorHasMoveFlag
+                                && board[previousX][previousY][0] != colorHasMoveFlag
                             ) {
 
                                 // ketrigger setelah piece coba dipindakan
@@ -387,8 +406,8 @@ class BoardFragment : Fragment() {
                                 destination row dan destination col,
                                 karena bidak sudah berhasil pindah
                                 ======================================= */
-                               if (board[currentRow][currentCol][0]=='w') colorHasMoveFlag= 'w'
-                                if (board[currentRow][currentCol][0]=='b') colorHasMoveFlag= 'b'
+                                if (board[currentRow][currentCol][0] == 'w') colorHasMoveFlag = 'w'
+                                if (board[currentRow][currentCol][0] == 'b') colorHasMoveFlag = 'b'
 
                                 println("color $colorHasMoveFlag")
 
