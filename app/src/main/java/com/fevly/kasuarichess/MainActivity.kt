@@ -23,6 +23,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
+import com.fevly.kasuarichess.depend.StockfishEngine
+import com.fevly.kasuarichess.stockengine.StockfishFeeder
 import com.google.android.material.tabs.TabLayout
 
 
@@ -87,6 +89,18 @@ class MainActivity : AppCompatActivity() {
         tabLayout = findViewById<View>(R.id.tabs) as TabLayout
         tabLayout.setupWithViewPager(viewPager)
         createTabIcons()
+
+
+
+
+/*    ========================040424===================
+        info depth 8 seldepth 6 multipv 1 score cp -21 nodes 4939 nps 66743 hashfull 1 tbhits 0 time 74 pv c7c5 g1f3 b8c6 b1c3 e7e5
+        info depth 8 seldepth 6 multipv 1 score cp -21 nodes 4939 nps 66743 hashfull 1 tbhits 0 time 74 pv c7c5 g1f3 b8c6 b1c3 e7e5
+        info depth 8 seldepth 6 multipv 1 score cp -21 nodes 4939 nps 66743 hashfull 1 tbhits 0 time 74 pv c7c5 g1f3 b8c6 b1c3 e7e5
+        info depth 8 seldepth 6 multipv 1 score cp -21 nodes 4939 nps 66743 hashfull 1 tbhits 0 time 74 pv c7c5 g1f3 b8c6 b1c3 e7e5
+        ================================================*/
+        var stockfishFeeder = StockfishFeeder(this)
+
 
     } // ends on create
 

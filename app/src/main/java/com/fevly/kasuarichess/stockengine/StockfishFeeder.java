@@ -11,8 +11,8 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 
-import com.fevly.engine.StockfishEngine;
-import com.fevly.engine.StringOutListener;
+import com.fevly.kasuarichess.depend.StockfishEngine;
+import com.fevly.kasuarichess.depend.StringOutListener;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,7 +34,7 @@ info depth 8 seldepth 6 multipv 1 score cp -21 nodes 4939 nps 65853 hashfull 1 t
         Pattern pattern = Pattern.compile("info depth " + targetDepth + " .*");
         Matcher matcher = pattern.matcher(input);
         while (matcher.find()) {
-            Log.d("kasuarichess", matcher.group(0));
+            Log.d("stockfish", matcher.group(0));
         }
     }
 

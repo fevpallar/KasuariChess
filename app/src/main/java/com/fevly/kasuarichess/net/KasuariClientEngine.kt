@@ -1,4 +1,4 @@
-package kususkasuari
+package com.fevly.kasuarichess.net
 
 import java.net.Socket
 

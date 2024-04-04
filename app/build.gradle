@@ -30,10 +30,16 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
 }
 
 dependencies {
-    implementation fileTree('../libs')
+    implementation fileTree(dir: "libs", include: ["*.jar", "*.so"])
+//    implementation fileTree('../libs')
     implementation 'androidx.core:core-ktx:1.8.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
