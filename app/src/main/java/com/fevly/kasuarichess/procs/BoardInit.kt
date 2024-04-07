@@ -106,8 +106,6 @@ class BoardInit() {
             if (j < cols - 1) stringBuilder.append("┴")
         }
         stringBuilder.append("┘")
-
-        Log.e("chess","latest: /n"+stringBuilder.toString())
     }
 
 

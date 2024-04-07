@@ -99,7 +99,7 @@ class MainActivity : AppCompatActivity() {
         info depth 8 seldepth 6 multipv 1 score cp -21 nodes 4939 nps 66743 hashfull 1 tbhits 0 time 74 pv c7c5 g1f3 b8c6 b1c3 e7e5
         info depth 8 seldepth 6 multipv 1 score cp -21 nodes 4939 nps 66743 hashfull 1 tbhits 0 time 74 pv c7c5 g1f3 b8c6 b1c3 e7e5
         ================================================*/
-        var stockfishFeeder = StockfishFeeder(this)
+//        var stockfishFeeder = StockfishFeeder(this)
 
 
     } // ends on create

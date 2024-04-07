@@ -41,7 +41,14 @@ class BoardFragment : Fragment() {
     var currentRow = -1
     var currentCol = -1
 
+    // ini nanti diupdate juga oleh lawan
     var colorHasMoveFlag: Char = 'x'; // w -> putih (white), b -> hitam (bleeki..)
+
+     //  07042024 : ini usahakan reuse dimana2
+    // intepret ke notasi
+    var lastMoveX =-1
+    var lastMoveY =-1
+    var lastMovePiece=""
 
     lateinit var board: Array<Array<String>>
 
@@ -66,9 +73,6 @@ class BoardFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
-
 
     }
 
@@ -102,15 +106,12 @@ class BoardFragment : Fragment() {
             Array(8) { Array(8) { "" } } // kontent array yg akan dipassing di setiap proses, inilah update-an yg jadi snapshot
 
 
-
-
         // inisialisasi board dan pergerakan bidak2
         var boardInit = BoardInit()
         board = boardInit.initializeBoard()
         boardInit.printTwoDStringArrayInBox(board)
         pm = PieceMoves(board)
         drawLayoutAndBoard()
-
 
         return view
     }
@@ -368,10 +369,18 @@ class BoardFragment : Fragment() {
                         var previousY =
                             trackedClickedPiece.toTypedArray()[trackedClickedPiece.size - 2].second.toInt();
 
-                        Log.d("chess", "previous ($previousX , $previousY) ")
+                           //  Log.d("chess", "previous ($previousX , $previousY) ")
 
 
-                        if (currentRow != previousX && currentCol != previousY) {
+
+                        if (
+                            board[previousX][previousY].length > 0 // ini prevent excep. "gerak dari cell kosong ke" cell tdk kosong
+                            &&
+                            board[previousX][previousY][0]!=colorHasMoveFlag // wrn yg move <> wara yg baru move
+                            &&
+                            currentRow != previousX && currentCol != previousY //cell tujuan <> cell awal
+
+                        ) {
 
                             // block if ini tdk ketrigger saat pertama kali click bidak
 
@@ -379,7 +388,6 @@ class BoardFragment : Fragment() {
                             // , sehingga perlu board[previousX][previousY].length>0
                             if (board[previousX][previousY].length > 0
                                 && board[previousX][previousY][1] == 'k'
-                                && board[previousX][previousY][0] != colorHasMoveFlag
                             ) {
 
                                 // ketrigger setelah piece coba dipindakan
@@ -394,11 +402,63 @@ class BoardFragment : Fragment() {
                                     false
                                 )
 
-//                                 boardInit.
+                                println("latest board\n")
                                 BoardInit().printTwoDStringArrayInBox(latestBoard)
 
-                                // update layout square image view disini
-                                drawUpdatedPieces(latestBoard, imageViewArray)
+
+                               var  isMoved = !latestBoard.contentDeepEquals(
+                                   board)
+                                if (!isMoved){
+                                    snapshotMoves.add(latestBoard)
+                                    BoardInit().printTwoDStringArrayInBox(snapshotMoves[snapshotMoves.size
+                                    -1])
+                                    lastMoveX = currentRow
+                                    lastMoveY = currentCol
+                                    lastMovePiece = board[previousX][previousY]
+
+                                    /*========================================================================
+                                      070424 : ini yg board[lastMoveX][lastMoveY]!="".
+                                      cegah  issue NPE di titik manapun/posisi apapun di dalam game.
+
+                                      -Issue sebelumnya adalah: Kalau pieces (diposisi manapun)
+                                      dipindah-pindahkan /diclik-click dengan terlalu cepat
+                                      board[lastMoveX][lastMoveY][0] nyebapin index out of bond.
+                                      _____________________________________________-
+
+                                      waktu issue ini belum dibenarkan...debugnya sulit .
+
+                                      Karena, contoh:
+
+                                      [Kuda di cell b1 di pindahkan ke --->  cell a3.
+                                      Nah sekarang pindah2 kan secara cepat (bolak-balik dengan cepat beberapa kali)]
+
+                                     Nanti itu cell board[lastMoveX][lastMoveY] bisa  kosong.
+                                      Kenapa bisa kosong ??  Tidak tahu.....
+
+                                      asumsinya itu karena :
+
+                                       waktu yg dipakai untuk pindahin kuda OVERLAPP sama
+                                       proses2 lain
+
+                                       (entahkah itu saat perbandingan lsnapshot ataukah
+                                       sewaktu trackedPiece diisi ataukah sewaktu validasi move)
+
+                                     dengan kata lain, proses pindahin kuda terlalu cepat sebelum
+                                     hasil sebelum selesai diproses
+                                     ===========================================================================*/
+
+                                    if (  board[lastMoveX][lastMoveY]!="" && board[lastMoveX][lastMoveY][0]=='w')
+                                        colorHasMoveFlag='w'
+                                    if (  board[lastMoveX][lastMoveY]!="" && board[lastMoveX][lastMoveY][0]=='b') colorHasMoveFlag='b'
+
+
+                                    println(colorHasMoveFlag)
+                                }
+
+
+                                // 070424 jangan ganti ke latestboard, usahakan tetap snapshot
+                                // ada issue, tapi  lupa persisnya bgm
+                               drawUpdatedPieces(snapshotMoves[snapshotMoves.size-1], imageViewArray)
 
                                 /*====================================
                                 note 31032024
@@ -406,30 +466,11 @@ class BoardFragment : Fragment() {
                                 destination row dan destination col,
                                 karena bidak sudah berhasil pindah
                                 ======================================= */
-                                if (board[currentRow][currentCol][0] == 'w') colorHasMoveFlag = 'w'
-                                if (board[currentRow][currentCol][0] == 'b') colorHasMoveFlag = 'b'
-
-                                println("color $colorHasMoveFlag")
-
-                                if (snapshotMoves.size == 0)
-                                    snapshotMoves.add(latestBoard)
-                                else {  // tdk pengaruh ke UI
-
-                                    // ketrigger saat piece kedua sudh selesai move (sampai ke cell tujuan)
-
-                                    // jika kontent latestboard identik dengan element terakhir dari
-                                    // array snapshot maka interpretasinya adalah tdk ada pergerakan
-                                    if (!latestBoard.contentDeepEquals(
-                                            snapshotMoves.toTypedArray()[snapshotMoves.size - 1]
-                                        )
-                                    )
-                                        snapshotMoves.add(latestBoard)
-                                }
-
-
                             }
                         }
-                        trackedClickedPiece.clear()
+                        // ini itu fix issue untuk case "gerak2 piece terlalu cepat" dpt di 070424
+                        //sebelumnya trackedClickedPiece.clear() yg sebapkan
+                        trackedClickedPiece = mutableSetOf<Pair<Int, Int>>()
 
                     }
 
