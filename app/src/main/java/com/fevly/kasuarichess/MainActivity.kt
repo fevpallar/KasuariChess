@@ -1,3 +1,4 @@
+package com.fevly.kasuarichess
 /*==========================================
 Author : Fevly Pallar
 contact : fevly.pallar@gmail.com
@@ -12,8 +13,6 @@ board schema :
 6,0 6,1 6,2 6,3 6,4 6,5 6,6 6,7
 7,0 7,1 7,2 7,3 7,4 7,5 7,6 7,7
 =========================================*/
-package com.fevly.kasuarichess
-
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,8 +22,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
-import com.fevly.kasuarichess.depend.StockfishEngine
-import com.fevly.kasuarichess.stockengine.StockfishFeeder
+import com.fevly.kasuarichess.fragments.AnalysisFragment
+import com.fevly.kasuarichess.fragments.BoardFragment
 import com.google.android.material.tabs.TabLayout
 
 
@@ -35,24 +34,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun createTabIcons() {
         val tabOne = LayoutInflater.from(this).inflate(R.layout.custom_tab, null) as TextView
-        tabOne.text = "Board"
+//        tabOne.text = "Board"
      tabOne.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.boardgame, 0, 0)
         tabLayout.getTabAt(0)!!.customView = tabOne
-//        val tabTwo = LayoutInflater.from(this).inflate(R.layout., null) as TextView
-//        tabTwo.text = "Tab 2"
-//        tabTwo.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.alert_light_frame, 0, 0)
-//        tabLayout.getTabAt(1)!!.customView = tabTwo
-//        val tabThree = LayoutInflater.from(this).inflate(R.layout.custom_tab, null) as TextView
-//        tabThree.text = "Tab 3"
-//        tabThree.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.arrow_down_float, 0, 0)
-//        tabLayout.getTabAt(2)!!.customView = tabThree
+     val tabTwo = LayoutInflater.from(this).inflate(R.layout.custom_tab, null) as TextView
+//       tabTwo.text = "Analysis"
+        tabTwo.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.analysis, 0, 0)
+        tabLayout.getTabAt(1)!!.customView = tabTwo
+
+
     }
 
     private fun createViewPager(viewPager: ViewPager) {
         val adapter = ViewPagerAdapter(supportFragmentManager)
-        adapter.addFrag(BoardFragment(), "Board title")
-//        adapter.addFrag(Fragment2(), "Tab 2")
-//        adapter.addFrag(Fragment3(), "Tab 3")
+        adapter.addFrag(BoardFragment(), "")
+        adapter.addFrag(AnalysisFragment(), "")
         viewPager.adapter = adapter
     }
 
@@ -89,17 +85,6 @@ class MainActivity : AppCompatActivity() {
         tabLayout = findViewById<View>(R.id.tabs) as TabLayout
         tabLayout.setupWithViewPager(viewPager)
         createTabIcons()
-
-
-
-
-/*    ========================040424===================
-        info depth 8 seldepth 6 multipv 1 score cp -21 nodes 4939 nps 66743 hashfull 1 tbhits 0 time 74 pv c7c5 g1f3 b8c6 b1c3 e7e5
-        info depth 8 seldepth 6 multipv 1 score cp -21 nodes 4939 nps 66743 hashfull 1 tbhits 0 time 74 pv c7c5 g1f3 b8c6 b1c3 e7e5
-        info depth 8 seldepth 6 multipv 1 score cp -21 nodes 4939 nps 66743 hashfull 1 tbhits 0 time 74 pv c7c5 g1f3 b8c6 b1c3 e7e5
-        info depth 8 seldepth 6 multipv 1 score cp -21 nodes 4939 nps 66743 hashfull 1 tbhits 0 time 74 pv c7c5 g1f3 b8c6 b1c3 e7e5
-        ================================================*/
-//      var stockfishFeeder = StockfishFeeder(this)
 
 
     } // ends on create

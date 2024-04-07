@@ -107,7 +107,7 @@ class BoardInit() {
         }
         stringBuilder.append("┘")
 
-        Log.e("chess","latest: /n"+stringBuilder.toString())
+        Log.e("chess",stringBuilder.toString())
     }
 
 

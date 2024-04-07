@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.fevly.kasuarichess.MainActivity">
+
+
+    <!-- activity_main.xml -->
+    <GridLayout
+        android:id="@+id/chessboard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:background="@color/teal_700"
+        android:columnCount="8"
+        android:rowCount="9"
+
+        ></GridLayout>
+
+
+    <TextView
+        android:id="@+id/enginelabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+         android:text="Moves recomendation are:"/>
+
+    <EditText
+        android:id="@+id/engineoutput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint=".."
+        android:text="blabla.."
+        android:inputType="textMultiLine"
+        android:lines="8"
+        android:textSize = "14sp"
+        android:scrollbars="horizontal"
+        android:background="@color/black"
+        android:textColor="@color/white"
+        android:enabled="false"/>
+
+
+</LinearLayout>

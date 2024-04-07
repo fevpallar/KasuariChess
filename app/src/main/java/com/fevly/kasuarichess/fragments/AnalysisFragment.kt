@@ -12,29 +12,35 @@ board schema :
 6,0 6,1 6,2 6,3 6,4 6,5 6,6 6,7
 7,0 7,1 7,2 7,3 7,4 7,5 7,6 7,7
 =========================================*/
-package com.fevly.kasuarichess
+package com.fevly.kasuarichess.fragments
 
 
 import PieceMoves
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager.widget.ViewPager
+import com.fevly.kasuarichess.R
+import com.fevly.kasuarichess.fragments.AnalysisFragment.StaticImageViewHolder.imageViewArray
 import com.fevly.kasuarichess.procs.BoardInit
+import com.fevly.kasuarichess.stockengine.StockfishFeeder
 import com.fevly.kasuarichess.util.Timing
 import com.google.android.material.tabs.TabLayout
 
 
-class BoardFragment : Fragment() {
+class AnalysisFragment : Fragment() {
     lateinit var tabLayout: TabLayout
     lateinit var viewPager: ViewPager
     var currentPiece = ""
@@ -43,27 +49,34 @@ class BoardFragment : Fragment() {
 
     // ini nanti diupdate juga oleh lawan
     var colorHasMoveFlag: Char = 'x'; // w -> putih (white), b -> hitam (bleeki..)
+    var colorToMoveFlag: Char = 'x'; // w -> putih (white), b -> hitam (bleeki..)
 
-     //  07042024 : ini usahakan reuse dimana2
+    //  07042024 : ini usahakan reuse dimana2
     // intepret ke notasi
-    var lastMoveX =-1
-    var lastMoveY =-1
-    var lastMovePiece=""
+    var lastMoveX = -1
+    var lastMoveY = -1
+    var lastMovePiece = ""
+
+    lateinit var uiThreadHandler: Handler
 
     lateinit var board: Array<Array<String>>
 
     lateinit var chessboardLayout: GridLayout
 
     lateinit var trackedClickedPiece: MutableSet<Pair<Int, Int>>
-    lateinit var imageViewArray: Array<Array<ImageView>>
+
+    //    lateinit var imageViewArray: Array<Array<ImageView>>
+    object StaticImageViewHolder {
+        lateinit var imageViewArray: Array<Array<ImageView>>
+    }
 
     lateinit var pm: PieceMoves
 
     lateinit var latestBoard: Array<Array<String>>
     lateinit var snapshotMoves: MutableList<Array<Array<String>>>
 
-    lateinit var playerTime: TextView
-    lateinit var opponentTime: TextView
+    lateinit var engineout: EditText
+    lateinit var stockfishFeeder: StockfishFeeder
 
     var labelHuruf = arrayOf("a", "b", "c", "d", "e", "f", "g", "h")
     var labelAngka = arrayOf("1", "2", "3", "4", "5", "6", "7", "8")
@@ -79,20 +92,14 @@ class BoardFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_one, container, false)
+        val view = inflater.inflate(R.layout.analysis_fragment, container, false)
 
 
         imageViewArray = Array(8) { Array(8) { ImageView(requireContext()) } }
         chessboardLayout = view.findViewById<GridLayout>(R.id.chessboard)
         chessboardLayout.setBackgroundColor(Color.RED)
 
-        playerTime = view.findViewById<TextView>(R.id.player)
-        opponentTime = view.findViewById<TextView>(R.id.opponent)
-
-
-        timing = Timing() // timer
-        timing.processGameTime(playerTime)
-  timing.processGameTime(opponentTime)
+        engineout = view.findViewById<EditText>(R.id.engineoutput)
 
         //main board
         board = Array(8) { Array(8) { "" } }
@@ -112,6 +119,13 @@ class BoardFragment : Fragment() {
         boardInit.printTwoDStringArrayInBox(board)
         pm = PieceMoves(board)
         drawLayoutAndBoard()
+
+        // engine
+        uiThreadHandler = Handler(Looper.getMainLooper())
+        stockfishFeeder = StockfishFeeder(requireContext(), uiThreadHandler, board, 'w', engineout)
+
+
+
 
         return view
     }
@@ -326,7 +340,7 @@ class BoardFragment : Fragment() {
         return if ((row + col) % 2 == 0) {
             ContextCompat.getColor(requireContext(), R.color.white)
         } else {
-            Color.parseColor("#F57C00")
+            Color.parseColor("#0acf0e")
         }
     }
 
@@ -369,14 +383,13 @@ class BoardFragment : Fragment() {
                         var previousY =
                             trackedClickedPiece.toTypedArray()[trackedClickedPiece.size - 2].second.toInt();
 
-                           //  Log.d("chess", "previous ($previousX , $previousY) ")
-
+                        //  Log.d("chess", "previous ($previousX , $previousY) ")
 
 
                         if (
                             board[previousX][previousY].length > 0 // ini prevent excep. "gerak dari cell kosong ke" cell tdk kosong
                             &&
-                            board[previousX][previousY][0]!=colorHasMoveFlag // wrn yg move <> wara yg baru move
+                            board[previousX][previousY][0] != colorHasMoveFlag // wrn yg move <> wara yg baru move
                             &&
                             currentRow != previousX && currentCol != previousY //cell tujuan <> cell awal
 
@@ -402,16 +415,19 @@ class BoardFragment : Fragment() {
                                     false
                                 )
 
-                                println("latest board\n")
-                                BoardInit().printTwoDStringArrayInBox(latestBoard)
+                                /*    println("latest board\n")
+                                    BoardInit().printTwoDStringArrayInBox(latestBoard)
+    */
 
-
-                               var  isMoved = !latestBoard.contentDeepEquals(
-                                   board)
-                                if (!isMoved){
+                                var isMoved = !latestBoard.contentDeepEquals(
+                                    board
+                                )
+                                if (!isMoved) {
                                     snapshotMoves.add(latestBoard)
-                                    BoardInit().printTwoDStringArrayInBox(snapshotMoves[snapshotMoves.size
-                                    -1])
+                                    /*     BoardInit().printTwoDStringArrayInBox(
+                                             snapshotMoves[snapshotMoves.size
+                                                     - 1]
+                                         )*/
                                     lastMoveX = currentRow
                                     lastMoveY = currentCol
                                     lastMovePiece = board[previousX][previousY]
@@ -447,18 +463,36 @@ class BoardFragment : Fragment() {
                                      hasil sebelum selesai diproses
                                      ===========================================================================*/
 
-                                    if (  board[lastMoveX][lastMoveY]!="" && board[lastMoveX][lastMoveY][0]=='w')
-                                        colorHasMoveFlag='w'
-                                    if (  board[lastMoveX][lastMoveY]!="" && board[lastMoveX][lastMoveY][0]=='b') colorHasMoveFlag='b'
+                                    if (board[lastMoveX][lastMoveY] != "" && board[lastMoveX][lastMoveY][0] == 'w') {
+                                        colorHasMoveFlag = 'w'
+                                        colorToMoveFlag = 'b'
 
+                                    }
+
+                                    if (board[lastMoveX][lastMoveY] != "" && board[lastMoveX][lastMoveY][0] == 'b') {
+                                        colorHasMoveFlag = 'b'
+                                        colorToMoveFlag = 'w'
+
+                                    }
 
                                     println(colorHasMoveFlag)
+
+                                    stockfishFeeder.setParams(
+                                        requireContext(),
+                                        uiThreadHandler,
+                                        snapshotMoves[snapshotMoves.size - 1],
+                                        colorToMoveFlag,
+                                        engineout
+                                    )
                                 }
 
 
                                 // 070424 jangan ganti ke latestboard, usahakan tetap snapshot
                                 // ada issue, tapi  lupa persisnya bgm
-                               drawUpdatedPieces(snapshotMoves[snapshotMoves.size-1], imageViewArray)
+                                drawUpdatedPieces(
+                                    snapshotMoves[snapshotMoves.size - 1],
+                                    imageViewArray
+                                )
 
                                 /*====================================
                                 note 31032024
@@ -474,11 +508,11 @@ class BoardFragment : Fragment() {
 
                     }
 
-                    if (snapshotMoves.size > 0) {
-                        Log.d("chess", "snapshot terakhir: \n")
-                        BoardInit().printTwoDStringArrayInBox(snapshotMoves[snapshotMoves.size - 1])
+                    /*      if (snapshotMoves.size > 0) {
+                              Log.d("chess", "snapshot terakhir: \n")
+                              BoardInit().printTwoDStringArrayInBox(snapshotMoves[snapshotMoves.size - 1])
 
-                    }
+                          }*/
                 }
             }
         }

@@ -59,7 +59,7 @@ public class FenGen {
         hasilnya = r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1
      =================================================*/
     public static String transform(String[][] input) {
-        String separator = "";
+        String separator = "/";
         String fen = "";
         List<String> movesPerRow;
 
@@ -135,8 +135,6 @@ public class FenGen {
             }
 
     } // i
-
-
         return filterFenPerRow(fen);
 }
     public static String filterFenPerRow(String fen) {
