@@ -42,9 +42,10 @@ info depth 8 seldepth 6 multipv 1 score cp -21 nodes 4939 nps 65853 hashfull 1 t
 
         String command = "isready"; //or other command
         command += "\n";
-        command += "position startpos moves e2e4";
+//        command += "position startpos moves e2e4";
+        command+="position fen 8/8/8/4p1K1/2k1P3/8/8/8 b";
         command += "\n";
-        command += "go infinite";
+      command += "go infinite";
         command += "\n";
 
         /*====================================================
