@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager.widget.ViewPager
 import com.fevly.kasuarichess.R
+import com.fevly.kasuarichess.fragments.AnalysisFragment.BoardHolder.board
 import com.fevly.kasuarichess.fragments.AnalysisFragment.StaticImageViewHolder.imageViewArray
 import com.fevly.kasuarichess.procs.BoardInit
 import com.fevly.kasuarichess.stockengine.StockfishFeeder
@@ -59,7 +60,9 @@ class AnalysisFragment : Fragment() {
 
     lateinit var uiThreadHandler: Handler
 
-    lateinit var board: Array<Array<String>>
+    object BoardHolder {
+        lateinit var board: Array<Array<String>>
+    }
 
     lateinit var chessboardLayout: GridLayout
 
@@ -368,11 +371,18 @@ class AnalysisFragment : Fragment() {
 
                             Tanpa implementasi ini, Pawn yg maju ke kotaknya Kuda (seharus kuda yg maju ke kotak tujuannya)
                     ============================================================================*/
+
+
                     trackedClickedPiece.add(Pair(currentRow, currentCol))
 
 
                     Log.d("CHESS", trackedClickedPiece.toString())
                     Log.d("CHESS", "current = ( $i , $j ) = " + board[i][j])
+
+
+
+
+
 
                     if (trackedClickedPiece.size > 1) {// list sdh 2 element, element terakhir itu bidak yg mau gerak/pindah/move
 
@@ -404,7 +414,7 @@ class AnalysisFragment : Fragment() {
                             ) {
 
                                 // ketrigger setelah piece coba dipindakan
-
+                                var start = System.currentTimeMillis()
                                 latestBoard = pm.moveKnight(
                                     previousX,
                                     previousY,
@@ -414,13 +424,22 @@ class AnalysisFragment : Fragment() {
                                     board,
                                     false
                                 )
+                                Log.d(
+                                    "duration",
+                                    "pm.moveKnight " + (System.currentTimeMillis() - start).toString()
+                                )
 
                                 /*    println("latest board\n")
                                     BoardInit().printTwoDStringArrayInBox(latestBoard)
     */
 
+                                var start3 = System.currentTimeMillis()
                                 var isMoved = !latestBoard.contentDeepEquals(
                                     board
+                                )
+                                Log.d(
+                                    "duration",
+                                    "!latestBoard.contentDeepEquals " + (System.currentTimeMillis() - start3).toString()
                                 )
                                 if (!isMoved) {
                                     snapshotMoves.add(latestBoard)
@@ -476,7 +495,7 @@ class AnalysisFragment : Fragment() {
                                     }
 
                                     println(colorHasMoveFlag)
-
+                                    var start = System.currentTimeMillis()
                                     stockfishFeeder.setParams(
                                         requireContext(),
                                         uiThreadHandler,
@@ -484,16 +503,27 @@ class AnalysisFragment : Fragment() {
                                         colorToMoveFlag,
                                         engineout
                                     )
+
+
+                                    Log.d(
+                                        "duration",
+                                        "stockfishFeeder.setParams " + (System.currentTimeMillis() - start).toString()
+                                    )
+
+
                                 }
 
-
+                                var start2 = System.currentTimeMillis()
                                 // 070424 jangan ganti ke latestboard, usahakan tetap snapshot
                                 // ada issue, tapi  lupa persisnya bgm
                                 drawUpdatedPieces(
                                     snapshotMoves[snapshotMoves.size - 1],
                                     imageViewArray
                                 )
-
+                                Log.d(
+                                    "duration",
+                                    "drawUpdatedPieces " + (System.currentTimeMillis() - start2).toString()
+                                )
                                 /*====================================
                                 note 31032024
                                 currentRow & currentCol dititik ini sudah menjadi

@@ -7,19 +7,28 @@ contact : fevly.pallar@gmail.com
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Handler;
 import android.util.Log;
 import android.widget.EditText;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
+import com.fevly.kasuarichess.R;
 import com.fevly.kasuarichess.depend.StockfishEngine;
 import com.fevly.kasuarichess.depend.StringOutListener;
 import com.fevly.kasuarichess.fragments.AnalysisFragment;
 import com.fevly.kasuarichess.util.EngineOutputFilter;
 import com.fevly.kasuarichess.util.FenGen;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class StockfishFeeder implements StringOutListener {
@@ -65,31 +74,30 @@ public class StockfishFeeder implements StringOutListener {
         allLines = stringOut;
         allMoves = new EngineOutputFilter().filterOutputMoves(allLines);
 
-        uiThreadHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                text.setText("");
-            }
-        });
-
+        mapMoveAndItsConseq = new LinkedHashMap<String, String>();// map response-move-pertama & konsekutif movesnya
         String tempLine = "";
         for (Object line : allMoves) {
+            String splitOfEachLineMove[] = line.toString().split(" ");
 
- /*           String tempSplitter [] = line.toString().split(" ");
-            String tempSingleMove = tempSplitter[0].trim();
-            System.out.println("pisah "+tempSingleMove);
-            int indexRow =Integer.valueOf(String.valueOf(tempSingleMove.charAt(tempSingleMove.length()-1)));
-        Character tempChar= tempSingleMove.charAt(tempSingleMove.length()-2);
-           int indexCol = convertToColumnNumber(tempChar);
-            System.out.println("| "+indexRow );
-            System.out.println("| "+indexCol );
+            if (mapMoveAndItsConseq.containsKey(splitOfEachLineMove[0])) {
+                String theValue = mapMoveAndItsConseq.get(splitOfEachLineMove[0]);
+                if (line.toString().length() > theValue.length()) {
+                    mapMoveAndItsConseq.put(splitOfEachLineMove[0], line.toString());
+                }
+            } else mapMoveAndItsConseq.put(splitOfEachLineMove[0], line.toString());
 
-            AnalysisFragment.StaticImageViewHolder.imageViewArray [indexRow][indexCol].setBackgroundColor(Color.BLACK);
 
-            System.out.println("| "+line);*/
-
-            tempLine += line + "\n";
         }
+
+
+        moveKeys = new ArrayList<String>();
+
+        for (Map.Entry<String, String> entry : mapMoveAndItsConseq.entrySet()) {
+            moveKeys.add(entry.getKey().trim());
+            String tValue = entry.getValue();
+            tempLine += tValue + "\n";
+        }
+
         String finalTempLine = tempLine;
         uiThreadHandler.post(new Runnable() {
             @Override
@@ -99,14 +107,34 @@ public class StockfishFeeder implements StringOutListener {
         });
         allMoves.clear();
 
+        for (String mk : moveKeys) {
+            int bSCol = convertToColumnNumber(mk.charAt(mk.length() - 4));
+            int bSRow = (8) - Integer.valueOf(String.valueOf(mk.charAt(mk.length() - 3)));
 
+            int bDCol = convertToColumnNumber(mk.charAt(mk.length() - 2));
+            int bDRow = (8) - Integer.valueOf(String.valueOf(mk.charAt(mk.length() - 1)));
+
+            uiThreadHandler.post(new Runnable() {
+                @Override
+                public void run() {
+
+                    if (AnalysisFragment.BoardHolder.board[bDRow][bDCol] == "") {
+                        AnalysisFragment.StaticImageViewHolder.imageViewArray[bDRow][bDCol].setImageResource(R.drawable.herearrow);
+                        AnalysisFragment.StaticImageViewHolder.imageViewArray[bDRow][bDCol].setBackgroundColor(Color.parseColor("#dffc4c"));
+                        AnalysisFragment.StaticImageViewHolder.imageViewArray[bSRow][bSCol].setBackgroundColor(Color.parseColor("#dffc4c"));
+                    }
+                    else
+                        AnalysisFragment.StaticImageViewHolder.imageViewArray[bDRow][bDCol].setBackgroundColor(Color.parseColor("#80F79123"));
+                }
+            });
+        }
     }
-
-
     public void setParams(Context context, Handler uiThreadHandler, String board[][],
                           Character toMove, EditText text) {
 
+        Long start = System.currentTimeMillis();
         String boardToFen = FenGen.transform(board) + " " + toMove;
+        Log.d("duration", "FenGen.transform " + (System.currentTimeMillis() - start));
         System.out.println("FEN: " + boardToFen);
 
         String command = "ucinewgame";
@@ -129,7 +157,9 @@ public class StockfishFeeder implements StringOutListener {
          Kalau tdk ngepass instance dari class ini
          outputnya gak ada.
         ======================================== */
+        Long start2 = System.currentTimeMillis();
         so.tryIt(context, this, command);
+        Log.d("duration", "so.tryIt " + (System.currentTimeMillis() - start2));
     }
 
     public StockfishFeeder(Context context, Handler uiThreadHandler, String board[][],
@@ -137,10 +167,11 @@ public class StockfishFeeder implements StringOutListener {
         this.board = board;
         this.text = text;
         this.uiThreadHandler = uiThreadHandler;
+        this.context = context;
         so = new StockfishEngine();
         setParams(context, uiThreadHandler, board, toMove, text);
 
-     generateNotasi();
+        generateNotasi();
     }
 
 
@@ -149,26 +180,31 @@ public class StockfishFeeder implements StringOutListener {
 
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
-                chessBoard[row][col] = (char)('a' + col) + Integer.toString(8 - row);
+                chessBoard[row][col] = (char) ('a' + col) + Integer.toString(8 - row);
             }
         }
 
-        for (int row = 0; row < 8; row++) {
+    /*    for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
                 System.out.print("| " + chessBoard[row][col] + " ");
             }
             System.out.println("|");
             System.out.println("-------------------------------");
-        }
-        arrayNotasi= chessBoard;
+        }*/
+        arrayNotasi = chessBoard;
 
 
     }
+
     static int convertToColumnNumber(char columnLetter) {
         return columnLetter - 'a';
     }
 
     public static EditText text;
     private static StockfishEngine so;
-    private static String arrayNotasi [][] = new String[8][8];
+    private static String arrayNotasi[][] = new String[8][8];
+    private Map<String, String> mapMoveAndItsConseq = new LinkedHashMap<>();
+
+    private List<String> moveKeys = new ArrayList<>(); // pakai untuk warnai board sesuai engine output
+    private Context context;
 }
